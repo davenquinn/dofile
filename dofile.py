@@ -21,7 +21,9 @@ def redo_ifchange(*args):
 
 __file_ignores = ('site-packages','Python.framework')
 
-def find_user_modules(*ignored_modules):
+has_any = lambda fn, patterns: any(x in fn for x in patterns)
+
+def find_user_modules(match=None, ignore=[]):
     from sys import modules
 
     echo(__prefix+gb("Tracking python dependencies"))
@@ -34,10 +36,16 @@ def find_user_modules(*ignored_modules):
 
         # Don't worry about system modules
         # TODO: check for Linux/Windows patterns
-        if any(x in fn for x in __file_ignores):
+        if has_any(fn,__file_ignores):
             continue
-        # Get rid of ignored modules
-        if any(x in name for x in ignored_modules):
+        # Get rid of explicitly ignored modules
+        ignore += ['__main__', '__mp_main__']
+        if has_any(name,ignore):
+            continue
+
+        # If we specify patterns to match, then we must
+        # find the string within these
+        if not (match is None or has_any(name,match)):
             continue
 
         echo("     "+name)
@@ -50,15 +58,14 @@ def get_name(module):
         # Presumably we have passed a string
         return module
 
-def redo_modules(*ignored_modules):
+def redo_modules(*modules, ignore=[]):
     """
     You can call this in a dofile or in a script
     to update dependencies for this task
     """
-    ignores = list(ignored_modules)+['__main__', '__mp_main__']
-    ignored_module_names = (get_name(i) for i in ignores)
+    ignored_module_names = (get_name(i) for i in ignore)
 
-    files = list(find_user_modules(*ignored_module_names))
+    files = list(find_user_modules(*modules, ignore=ignore))
     echo(__prefix+gb("{} modules found".format(len(files))))
     redo_ifchange(*files)
 

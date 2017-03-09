@@ -10,7 +10,7 @@ def echo(msg, **kwargs):
 
 gb = lambda x: style(x,fg='green', bold=True)
 
-def redo_ifchange(*args):
+def __redo_ifchange(*args):
     """
     Redo if the arguments have changed
     """
@@ -39,8 +39,11 @@ def find_user_modules(match=None, ignore=[]):
         if has_any(fn,__file_ignores):
             continue
         # Get rid of explicitly ignored modules
-        ignore += ['__main__', '__mp_main__']
+        __sys_ignores = ['__main__', '__mp_main__']
+        if has_any(name,__sys_ignores):
+            continue
         if has_any(name,ignore):
+            echo("     "+style("ignored ",fg='red')+name)
             continue
 
         # If we specify patterns to match, then we must
@@ -66,8 +69,16 @@ def redo_modules(*modules, ignore=[]):
     ignored_module_names = (get_name(i) for i in ignore)
 
     files = list(find_user_modules(*modules, ignore=ignore))
-    echo(__prefix+gb("{} modules found".format(len(files))))
-    redo_ifchange(*files)
+    echo(__prefix+gb("Tracking {} python modules".format(len(files))))
+    __redo_ifchange(*files)
+
+def redo_ifchange(*args, modules=True, ignore=[]):
+    # A synthesis which will track modules by default
+    # as well as files that it is asked to track
+    # Could check for open file handlers as well?
+    if modules:
+        redo_modules(ignore=ignore)
+    __redo_ifchange(*args)
 
 def redirect():
     sys.stdout = sys.stderr

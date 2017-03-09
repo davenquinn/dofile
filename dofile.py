@@ -75,3 +75,11 @@ def redirect():
     # with redirect_stdout('/dev/tty'):
         # IPython.embed()
 # #__base_embed
+# Also look at tty.setraw() function which I think does what we need
+# import sys
+# import tty
+# sys.stdout = sys.stderr
+# tty.setcbreak(sys.stdout)
+# from IPython import embed
+# embed()
+

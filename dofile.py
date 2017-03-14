@@ -27,7 +27,7 @@ def find_user_modules(match=None, ignore=[]):
     from sys import modules
 
     echo(__prefix+gb("Tracking python dependencies"))
-    for name, module in modules.items():
+    for name, module in list(modules.items()):
         try:
             fn = module.__file__
         except AttributeError:
